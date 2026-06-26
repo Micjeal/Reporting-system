@@ -1,0 +1,10 @@
+'use client'
+
+// This is how to properly integrate the analytics dashboard
+// Create this file at: app/admin/analytics/page.tsx
+
+import { AnalyticsPageComponent } from '@/components/admin/analytics-page'
+
+export default function AnalyticsPage() {
+  return <AnalyticsPageComponent />
+}
