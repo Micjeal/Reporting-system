@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 
-export default async function Page() {
-  // For now, just redirect to login
-  // This allows the app to work while we debug the Supabase connection
+export default function Page() {
+  // Simple synchronous redirect to /login
+  // This bypasses all async operations and Supabase queries
   redirect('/login')
 }
