@@ -1,12 +1,11 @@
 import { redirect } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase-server'
-import type { Database } from '@/types/database'
-import { adminClient } from '@/lib/supabase-admin'
-
-type UserProfile = Pick<Database['public']['Tables']['users']['Row'], 'role' | 'status'>
 
 export default async function Page() {
   try {
+    // Lazy import to avoid build errors
+    const { createServerSupabase } = await import('@/lib/supabase-server')
+    const { adminClient } = await import('@/lib/supabase-admin')
+    
     const supabase = await createServerSupabase()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -15,7 +14,7 @@ export default async function Page() {
       redirect('/login')
     }
 
-    // Use admin client so this works even when `users` table has strict RLS.
+    // Use admin client so this works even when `users` table has strict RLS
     const { data, error } = await adminClient
       .from('users')
       .select('role,status')
@@ -27,20 +26,27 @@ export default async function Page() {
       redirect('/pending-approval')
     }
 
-    const profile = data as UserProfile | null
+    const profile = data as any
 
     // Check profile status
-    if (!profile || profile.status === 'pending') redirect('/pending-approval')
-    if (profile.status === 'rejected' || profile.status === 'suspended') redirect('/unauthorized')
+    if (!profile || profile.status === 'pending') {
+      redirect('/pending-approval')
+    }
+    if (profile.status === 'rejected' || profile.status === 'suspended') {
+      redirect('/unauthorized')
+    }
 
     // Route based on role
-    if (profile.role === 'admin') redirect('/admin/dashboard')
-    if (profile.role === 'manager') redirect('/manager/dashboard')
+    if (profile.role === 'admin') {
+      redirect('/admin/dashboard')
+    }
+    if (profile.role === 'manager') {
+      redirect('/manager/dashboard')
+    }
+    
     redirect('/agent/dashboard')
   } catch (error) {
-    // Log error for debugging but don't expose details
     console.error('Root page error:', error)
-    // Fallback to login on unexpected errors
     redirect('/login')
   }
 }
